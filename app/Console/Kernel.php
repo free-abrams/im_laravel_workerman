@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Console\Commands\WorkermanCommand;
+use App\Services\LoginAuthService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -26,7 +27,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // $schedule->command('inspire')-
+	    $login = new LoginAuthService('A111000', ['time' => time()]);
+	    $token = $login->encryptionToken();
+	    echo 'token: '.$token.PHP_EOL;
+	    $bool = $login->verifyToken($token);
+	    echo 'verifyToken: '.$bool?'true':'false'.PHP_EOL;
     }
 
     /**

@@ -7,12 +7,12 @@ use GatewayWorker\Register;
 use Illuminate\Console\Command;
 use Workerman\Worker;
 
-class WorkermanCommand extends Command
+class WorkerManCommand extends Command
 {
 
     protected $signature = 'workman {action} {--d}';
 
-    protected $description = 'Start a Workerman server.';
+    protected $description = 'Start a WorkerMan server.';
     protected $configs;
     public function __construct()
     {

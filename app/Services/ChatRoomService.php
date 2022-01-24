@@ -6,12 +6,14 @@ namespace App\Services;
 
 use App\Models\ChatGroup;
 use App\Models\ChatMessage;
+use App\Models\ChatRoom;
 use App\Models\PasswordReset;
 use App\Models\User;
 use App\Models\UserHasFollow;
 use GatewayWorker\Lib\Gateway;
 
 /**
+ * 聊天室类
  * Created By FreeAbrams
  * Date: 2021/6/17
  */
@@ -284,5 +286,75 @@ class ChatRoomService
             $invited_user['name']=$invited_nickname;
         }
         return [$author_user,$invited_user];
+    }
+	
+	/**
+	 * 聊天列表
+	 * @param $clientId
+	 * @param $data
+	 * @return array
+	 */
+    public static function messageList($clientId, $data)
+    {
+    	$where = [];
+    	$where[] = ['status', '=', 1];
+    	$where[] = ['inviter', '=', 0, 'or'];
+    	$where[] = ['invitee', '=', 0];
+        $chatRoom = ChatRoom::query()->where($where)->orderByDesc('updated_at')
+	        ->limit($data['limit'])
+	        ->offset($data['offset'])
+	        ->get();
+        
+        return ['client_id' => $clientId, 'data' => $chatRoom];
+    }
+    
+	/**
+	 * 新建群聊
+	 * @param $clientId
+	 * @param $data
+	 * @return array
+	 * @throws \Exception
+	 */
+    public static function createNewChatGroup($clientId, $data)
+    {
+        $newChatRoom = [
+        	'inviter' => 0,
+	        'invitee' => 1,
+	        'room_name' => '',
+	        'room_introduction' => '',
+	        'type' => 1,
+        ];
+        $chatRoom = new ChatRoom();
+        $newRoom = $chatRoom->fillable($newChatRoom)->save();
+        
+        if (!$newRoom) {
+        	throw new \Exception('table chat_rooms insert nothing');
+        }
+        
+        return ['client_id' => $clientId, 'return' => 'createNewChatRoom', 'chat_room_id' => $chatRoom->id];
+    }
+	
+	/**
+	 * 聊天记录
+	 * @param $clientId
+	 * @param $data
+	 * @return array
+	 */
+    public static function conversationRecord($clientId, $data)
+    {
+    	$where = [];
+    	$where[] = ['chat_room_id', '=', $data['chat_room_id']];
+    	$message = ChatMessage::query()->where($where)->orderByDesc('created_at')->get()->sortBy('created_at');
+        return ['client_id' => $clientId, 'data' => $message];
+    }
+	
+	/**
+	 * 发送消息
+	 * @param $clientId
+	 * @param $data
+	 */
+    public static function sendConversation($clientId, $data)
+    {
+        
     }
 }
